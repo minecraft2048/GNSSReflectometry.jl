@@ -1,11 +1,10 @@
-function truncate(data::DDM, window_size)
+function truncate(data::DDM{T,T1}, window_size) where {T,T1}
     peak = argmax(data.power_bins)[1]
     len = size(data.power_bins)[1]
     lower = clamp(peak - window_size ,1,len)
     upper = clamp(peak + window_size, 1, len)
 
-    DDM(
-        data.constellation,
+    DDM{T,T1}(
         data.prn,
         data.samples,
         data.rate,
@@ -22,14 +21,13 @@ function truncate(data::DDM, window_size)
 end
 
 
-function truncate(data::DDM, upper_window, lower_window)
+function truncate(data::DDM{T,T1}, upper_window, lower_window) where {T,T1}
     peak = argmax(data.power_bins)[1]
     len = size(data.power_bins)[1]
     lower = clamp(peak - lower_window ,1,len)
     upper = clamp(peak + upper_window, 1, len)
 
-    DDM(
-        data.constellation,
+    DDM{T,T1}(
         data.prn,
         data.samples,
         data.rate,
@@ -46,9 +44,8 @@ function truncate(data::DDM, upper_window, lower_window)
 end
 
 
-function normalize(data::DDM)
-    DDM(
-        data.constellation,
+function normalize(data::DDM{T,T1}) where {T,T1}
+    DDM{T,T1}(
         data.prn,
         data.samples,
         data.rate,
@@ -64,9 +61,8 @@ function normalize(data::DDM)
     )
 end
 
-function quantize(data::DDM, quantization_func)
-    DDM(
-        data.constellation,
+function quantize(data::DDM{T,T1}, quantization_func) where {T,T1}
+    DDM{typeof(quantization_func(data.power_bins[1,1])),T1}(
         data.prn,
         data.samples,
         data.rate,

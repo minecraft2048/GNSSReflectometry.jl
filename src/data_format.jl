@@ -1,20 +1,57 @@
 
 struct DDM{T, T2 <: AbstractGNSS}
-    constellation :: T2
     prn::Int
     samples::Int
     rate::Float64
     pvt::PVTSolution
     direct_doppler::Float64
     direct_code_phase::Float64
+    reflection_point_estimate::ECEF{Float64}
+    reflection_doppler_estimate::Float64
     incoherent_rounds::Int
     doppler_taps_hz::StepRangeLen{Float64, Base.TwicePrecision{Float64}, Base.TwicePrecision{Float64}, Int64}
     code_taps_samples::UnitRange{Int64}
     power_bins::Matrix{T}
 end
 
+#from old constructor
+
+function DDM(
+    constellation::T1,
+    prn::Int,
+    samples::Int,
+    rate::Float64,
+    pvt::PVTSolution,
+    direct_doppler::Float64,
+    direct_code_phase::Float64,
+    reflection_point_estimate::ECEF{Float64},
+    reflection_doppler_estimate::Float64,
+    incoherent_rounds::Int,
+    doppler_taps_hz::StepRangeLen{Float64, Base.TwicePrecision{Float64}, Base.TwicePrecision{Float64}, Int64},
+    code_taps_samples::UnitRange{Int64},
+    power_bins::Matrix{T},
+) where {T,T1<:AbstractGNSS}
+
+return  DDM{T,T1}(
+        prn,
+        samples,
+        rate,
+        pvt,
+        direct_doppler,
+        direct_code_phase,
+        reflection_point_estimate,
+        reflection_doppler_estimate,
+        incoherent_rounds,
+        doppler_taps_hz,
+        code_taps_samples,
+        power_bins
+    )
+
+end
+
+
+
 struct TrackingSummary{T <: AbstractGNSS}
-    constellation :: T
     prn::Int
     channel_id::Int
     acq_delay_samples::Float64
@@ -34,8 +71,7 @@ struct TrackingSummary{T <: AbstractGNSS}
 end
 
 function TrackingSummary(trk, channel_id, samplerate)
-    return TrackingSummary(
-        get_state(trk).system,
+    return TrackingSummary{typeof(get_state(trk).system)}(
         get_state(trk).prn,
         channel_id,
         0.0,
