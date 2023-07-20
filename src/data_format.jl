@@ -49,48 +49,6 @@ return  DDM{T,T1}(
 
 end
 
-
-
-struct TrackingSummary{T <: AbstractGNSS}
-    prn::Int
-    channel_id::Int
-    acq_delay_samples::Float64
-    acq_doppler_hz::Float64
-    acq_samplestamp_samples::UInt64
-    acq_doppler_step::UInt32
-    flag_valid_acquisition::Bool
-    fs::Float64
-    prompt::ComplexF64
-    cn0_db_hz::Float64
-    carrier_doppler_hz::Float64
-    carrier_phase_rads::Float64
-    code_phase_samples::Float64
-    tracking_sample_counter::UInt64
-    flag_valid_symbol_output::Bool
-    correlation_length_ms::Int32
-end
-
-function TrackingSummary(trk, channel_id, samplerate)
-    return TrackingSummary{typeof(get_state(trk).system)}(
-        get_state(trk).prn,
-        channel_id,
-        0.0,
-        0.0,
-        UInt64(0),
-        UInt32(0),
-        true,
-        samplerate,
-        get_prompt(trk),
-        ustrip(trk.cn0),
-        ustrip(get_carrier_doppler(trk)),
-        get_carrier_phase(trk),
-        get_code_phase(trk),
-        UInt64(0),
-        true,
-        Int32(1)
-    )
-end
-
 function Base.show(io::IO, ::MIME"text/plain",data::DDM)
     println(io,"DDM for PRN $(data.prn) at $(data.pvt.time):")
     println(io,"Receiver position:")

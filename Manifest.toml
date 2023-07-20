@@ -2,7 +2,7 @@
 
 julia_version = "1.9.0"
 manifest_format = "2.0"
-project_hash = "1017aec7200e10b98fe1811b88bf4b693807f431"
+project_hash = "86809896d60ddaa405ff6f78d6159089dff107c5"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1146,6 +1146,16 @@ deps = ["DocStringExtensions", "LinearAlgebra", "Test", "Unitful"]
 git-tree-sha1 = "d19cbeb5c6363149dee98090451a58aef1fa1b9c"
 uuid = "0814aff9-93cb-554c-9fff-9bf1cfdb5efa"
 version = "0.1.1"
+
+[[deps.TrackingSummaryDefinition]]
+deps = ["GNSSSignals", "PrettyTables"]
+path = "../TrackingSummaryDefinition"
+uuid = "8b83e296-8563-4be5-bd36-44dad72008b6"
+version = "1.0.0-DEV"
+weakdeps = ["Tracking", "Unitful"]
+
+    [deps.TrackingSummaryDefinition.extensions]
+    TrackingSummaryDefinitionTrackingExt = ["Tracking", "Unitful"]
 
 [[deps.TranscodingStreams]]
 deps = ["Random", "Test"]

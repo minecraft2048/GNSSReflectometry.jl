@@ -19,7 +19,7 @@ PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 ProgressLogging = "33c8b6b6-d38a-422a-b730-caa89a2f386c"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 TerminalLoggers = "5d786b92-1e48-4d6f-9151-6b4477ca9bed"
-Tracking = "10b2438b-ffd4-5096-aa58-44041d5c8f3b"
+TrackingSummaryDefinition = "8b83e296-8563-4be5-bd36-44dad72008b6"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [weakdeps]
