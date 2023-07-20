@@ -6,9 +6,14 @@ end
 
 
 function find_specular_point_c(transmitter,receiver)
+    #sometimes the C library fails to converge
     result = Vector{Float64}(undef,3)
-    n_iter = ccall((:calc_sx_ag, "/home/byakuya/workdir/libgnssr.so"),Int16, (Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble}), transmitter,receiver,result)
-    return result,n_iter
+    if Sys.ARCH == :x86_64
+      n_iter = ccall((:calc_sx_ag, "/home/byakuya/workdir/libgnssr.so"),Int16, (Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble}), transmitter,receiver,result)
+    else
+      n_iter = ccall((:calc_sx_ag, :libgnssr),Int16, (Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble}), transmitter,receiver,result)
+    end
+      return result,n_iter
 end
 
 

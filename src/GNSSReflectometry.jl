@@ -15,6 +15,7 @@ using GNSSDecoder
 using JSON
 using PrecompileTools
 using Statistics
+using LinearAlgebra
 
 include("data_format.jl")
 export DDM, TrackingSummary, DDM2
