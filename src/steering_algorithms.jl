@@ -82,6 +82,11 @@ function passthrough(trk,pvts,prn,userdata)
     return (doppler,code_delay,(0.0,0.0,0.0))
 end
 
+function passthrough(pvt,candidate_points)
+    return candidate_points
+end
+
+
 function specular_tracking_ipopt(trk,pvt,prn,userdata)
 
     problem_setup = userdata
@@ -127,6 +132,6 @@ function specular_tracking_loop(pvts,prn,specular_function,userdata)
     doppler = (-reflection_range_rate/299_792_458) * 1575.42e6 
     code_delay = 0.0 #TODO
 
-    return (doppler,code_delay,specular_position)
+    return (doppler,code_delay,ECEF(specular_position))
 
 end

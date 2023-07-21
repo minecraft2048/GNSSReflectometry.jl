@@ -28,10 +28,14 @@
     #test
 end
  =#
-function calculate_DDM(signal,sample_rate, nav_results,ncoh_rounds::Int, doppler_window::Int, doppler_step::Int,; niters = nothing,  steering_strategy = GNSSReflectometry.passthrough, 
-    userdata = nothing, intermediate_freq=0, compensate_doppler_code=false,
+function calculate_DDM(signal,sample_rate, nav_results,ncoh_rounds::Int, doppler_window::Int, doppler_step::Int,; 
+    niters = nothing,  
+    steering_strategy = GNSSReflectometry.passthrough, 
+    userdata = nothing,
+    intermediate_freq=0, 
+    compensate_doppler_code=false,
     postprocessing_callback=x->x,
-    reflection_selection_callback=x->x)
+    target_selection_strategy=GNSSReflectometry.passthrough)
 
     first_nav_idx = findfirst(x->!isnothing(x[3].time),nav_results)
 
@@ -63,8 +67,24 @@ function calculate_DDM(signal,sample_rate, nav_results,ncoh_rounds::Int, doppler
     for navslice in Iterators.partition(good_nav, 100)
         #println(navslice[1])
         result_single = []
-        for (idx,prn) in enumerate(prns)
+
+        prns = collect(keys(navslice[1][3].sats))
+
+        dopplers = []
+        specular_positions=[]
+
+        candidate_points = []
+
+        for prn in prns
             doppler,_,specular_position = steering_strategy(nothing,navslice,prn,userdata)
+            append!(candidate_points, [(prn, doppler, specular_position)])
+        end
+
+        targets = target_selection_strategy(navslice[1][3], candidate_points)
+
+
+        for (prn, doppler, specular_position) in targets
+            #doppler,_,specular_position = steering_strategy(nothing,navslice,prn,userdata)
             
             res = noncoherent_integrate!(signal[navslice[1][1]:navslice[1][1]+Int(sample_rate)], prn, ncoh_rounds,doppler, plan; intermediate_freq=intermediate_freq,compensate_doppler_code=compensate_doppler_code)
 
