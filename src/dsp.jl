@@ -32,7 +32,7 @@ function calculate_DDM(signal,sample_rate, nav_results,ncoh_rounds::Int, doppler
     niters = nothing,  
     steering_strategy = GNSSReflectometry.passthrough, 
     userdata = nothing,
-    intermediate_freq=0, 
+    intermediate_freq=0*u"Hz", 
     compensate_doppler_code=false,
     postprocessing_callback=x->x,
     target_selection_strategy=GNSSReflectometry.passthrough)
@@ -54,12 +54,14 @@ function calculate_DDM(signal,sample_rate, nav_results,ncoh_rounds::Int, doppler
     sig_1ms = Int(fld(sample_rate,1000))
     Hz = u"Hz"
 
-    plan = AcquisitionPlan(
+    #TODO BROKEN BROKEN BROKEN 
+    plan = Acquisition.AcquisitionPlanCPUMultithreaded(
         GPSL1(),
         sig_1ms,
         sample_rate*1.0*Hz;
         dopplers = -doppler_window*Hz:doppler_step*Hz:doppler_window*Hz,
-        compensate_doppler_code = true
+        compensate_doppler_code = compensate_doppler_code,
+        noncoherent_rounds=ncoh_rounds
     )
 
     good_nav = @view nav_results[first_nav_idx:(first_nav_idx+niters*100 - 1)]
@@ -83,10 +85,30 @@ function calculate_DDM(signal,sample_rate, nav_results,ncoh_rounds::Int, doppler
         targets = target_selection_strategy(navslice[1][3], candidate_points)
 
 
-        for (prn, doppler, specular_position) in targets
+        prns = [x[1] for x in targets]
+        dopplers_offsets = [x[2]Hz for x in targets]
+
+        println("$prns $dopplers_offsets")
+
+        #TODO use preplanned interface after bug is fixed
+        #ress = acquire!(plan,signal[navslice[1][1]:navslice[1][1]+Int(ceil(sample_rate))],prns; interm_freq=intermediate_freq, doppler_offsets=dopplers_offsets)
+        ress = acquire(GPSL1(),signal[navslice[1][1]:navslice[1][1]+Int(ceil(sample_rate))],
+                        sample_rate*Hz,
+                        prns; 
+                        interm_freq=intermediate_freq, 
+                        dopplers=-doppler_window*Hz:doppler_step*Hz:doppler_window*Hz, 
+                        doppler_offsets=dopplers_offsets,
+                        compensate_doppler_code=compensate_doppler_code,
+                        noncoherent_rounds=ncoh_rounds,
+                        plan=Acquisition.AcquisitionPlanCPUMultithreaded,
+                        flip_correlation=true
+                        )
+
+
+        for ((prn, doppler, specular_position), res) in zip(targets, ress)
             #doppler,_,specular_position = steering_strategy(nothing,navslice,prn,userdata)
             
-            res = noncoherent_integrate!(signal[navslice[1][1]:navslice[1][1]+Int(sample_rate)], prn, ncoh_rounds,doppler, plan; intermediate_freq=intermediate_freq,compensate_doppler_code=compensate_doppler_code)
+            #res = noncoherent_integrate!(signal[navslice[1][1]:navslice[1][1]+Int(sample_rate)], prn, ncoh_rounds,doppler, plan; intermediate_freq=intermediate_freq,compensate_doppler_code=compensate_doppler_code)
 
             res = DDM(
                 GPSL1(),
@@ -100,8 +122,8 @@ function calculate_DDM(signal,sample_rate, nav_results,ncoh_rounds::Int, doppler
                 doppler,
                 ncoh_rounds,
                 -doppler_window*1.0:doppler_step:doppler_window,
-                0:size(res)[1]-1,
-                res
+                0:size(res.power_bins)[1]-1,
+                res.power_bins
             ) |> postprocessing_callback
 
             append!(result_single,[res])
